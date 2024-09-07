@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Element Locator</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        form { margin-bottom: 20px; }
+        input[type="text"], input[type="url"], input[type="submit"] { margin: 10px 0; padding: 5px; width: 100%; }
+        #result { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+        #loading, #error, #warning { margin-top: 20px; }
+        #error { color: red; }
+        #warning { color: orange; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>Web Element Locator</h1>
+    <form id="scraperForm">
+        <label for="url">Website URL:</label><br>
+        <input type="url" id="url" name="url" required><br>
+        <label for="element">Element to locate (e.g., div, a, button):</label><br>
+        <input type="text" id="element" name="element_type" required><br>
+        <input type="submit" value="Analyze Website">
+    </form>
+    <div id="loading" style="display: none;">Analyzing... Please wait.</div>
+    <div id="error"></div>
+    <div id="warning"></div>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('scraperForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const loadingElem = document.getElementById('loading');
+            const errorElem = document.getElementById('error');
+            const warningElem = document.getElementById('warning');
+            const resultElem = document.getElementById('result');
+            
+            loadingElem.style.display = 'block';
+            errorElem.innerHTML = '';
+            warningElem.innerHTML = '';
+            resultElem.innerHTML = '';
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingElem.style.display = 'none';
+                if (!data.success) {
+                    if (data.content_warning) {
+                        warningElem.innerHTML = data.message;
+                    } else {
+                        errorElem.innerHTML = 'Error: ' + data.error;
+                    }
+                } else {
+                    resultElem.innerHTML = `<pre>${data.data}</pre>`;
+                }
+            })
+            .catch(error => {
+                loadingElem.style.display = 'none';
+                errorElem.innerHTML = 'An error occurred: ' + error.message;
+                console.error('Fetch error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
